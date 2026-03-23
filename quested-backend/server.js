@@ -1,16 +1,16 @@
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
+const path = require("path");
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
 
-const DATA_FILE = "./data.json";
+const DATA_FILE = path.join(__dirname, "data.json");
 
-/* ---------- Helper Functions ---------- */
 
 function readData() {
     const data = fs.readFileSync(DATA_FILE);
@@ -21,17 +21,24 @@ function writeData(data) {
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
 
+
 /* ---------- SIGNUP ---------- */
 
 app.post("/signup", (req, res) => {
+
     const { email, password } = req.body;
 
     const data = readData();
 
-    const userExists = data.users.find(user => user.email === email);
+    const userExists = data.users.find(
+        user => user.email === email
+    );
 
     if (userExists) {
-        return res.json({ success: false, message: "User already exists" });
+        return res.json({
+            success: false,
+            message: "User exists"
+        });
     }
 
     const newUser = {
@@ -43,74 +50,44 @@ app.post("/signup", (req, res) => {
     data.users.push(newUser);
     writeData(data);
 
-    res.json({ success: true, message: "Signup successful" });
+    res.json({
+        success: true
+    });
 });
+
 
 /* ---------- LOGIN ---------- */
 
 app.post("/login", (req, res) => {
+
     const { email, password } = req.body;
 
     const data = readData();
 
     const user = data.users.find(
-        user => user.email === email && user.password === password
+        u => u.email === email && u.password === password
     );
 
     if (!user) {
-        return res.json({ success: false, message: "Invalid credentials" });
+        return res.json({
+            success: false
+        });
     }
 
     res.json({
-        success: true,
-        message: "Login successful",
-        userEmail: email
+        success: true
     });
+
 });
 
-/* ---------- SAVE PROGRESS ---------- */
 
-app.post("/progress", (req, res) => {
-    const { email, quest } = req.body;
+/* ---------- TEST ---------- */
 
-    const data = readData();
-
-    const user = data.users.find(user => user.email === email);
-
-    if (!user) {
-        return res.json({ success: false, message: "User not found" });
-    }
-
-    user.progress[quest] = true;
-
-    writeData(data);
-
-    res.json({ success: true, message: "Progress saved" });
-});
-
-/* ---------- GET PROGRESS ---------- */
-
-app.get("/progress/:email", (req, res) => {
-    const email = req.params.email;
-
-    const data = readData();
-
-    const user = data.users.find(user => user.email === email);
-
-    if (!user) {
-        return res.json({ success: false });
-    }
-
-    res.json({
-        success: true,
-        progress: user.progress
-    });
-});
-
-/* ---------- START SERVER ---------- */
 app.get("/", (req, res) => {
-    res.send("QuestEd backend is running 🚀");
+    res.send("Backend running");
 });
+
+
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log("Server running on port " + PORT);
 });
