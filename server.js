@@ -8,9 +8,11 @@ const PORT = process.env.PORT || 5000;
 
 app.use(cors({
     origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type"]
 }));
+
+app.options("*", cors());
 app.use(express.json());
 
 const DATA_FILE = path.join(__dirname, "data.json");
