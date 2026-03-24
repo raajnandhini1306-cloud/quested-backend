@@ -1,7 +1,5 @@
 const express = require("express");
 const cors = require("cors");
-const fs = require("fs");
-const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -15,79 +13,85 @@ app.use(cors({
 app.options("*", cors());
 app.use(express.json());
 
-const DATA_FILE = path.join(__dirname, "data.json");
+let users = [];
 
 
-function readData() {
-    const data = fs.readFileSync(DATA_FILE);
-    return JSON.parse(data);
-}
-
-function writeData(data) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-}
-
-
-/* ---------- SIGNUP ---------- */
-
+/* SIGNUP */
 app.post("/signup", (req, res) => {
 
     const { email, password } = req.body;
 
-    const data = readData();
+    const exists = users.find(u => u.email === email);
 
-    const userExists = data.users.find(
-        user => user.email === email
-    );
-
-    if (userExists) {
-        return res.json({
-            success: false,
-            message: "User exists"
-        });
+    if (exists) {
+        return res.json({ success: false, message: "User exists" });
     }
 
-    const newUser = {
+    users.push({
         email,
         password,
         progress: {}
-    };
-
-    data.users.push(newUser);
-    writeData(data);
-
-    res.json({
-        success: true
     });
+
+    res.json({ success: true });
+
 });
 
 
-/* ---------- LOGIN ---------- */
-
+/* LOGIN */
 app.post("/login", (req, res) => {
 
     const { email, password } = req.body;
 
-    const data = readData();
-
-    const user = data.users.find(
+    const user = users.find(
         u => u.email === email && u.password === password
     );
 
     if (!user) {
-        return res.json({
-            success: false
-        });
+        return res.json({ success: false });
     }
 
-    res.json({
-        success: true
-    });
+    res.json({ success: true });
 
 });
 
 
-/* ---------- TEST ---------- */
+/* SAVE PROGRESS */
+app.post("/progress", (req, res) => {
+
+    const { email, quest } = req.body;
+
+    const user = users.find(u => u.email === email);
+
+    if (!user) {
+        return res.json({ success: false });
+    }
+
+    user.progress[quest] = true;
+
+    res.json({ success: true });
+
+});
+
+
+/* GET PROGRESS */
+app.get("/progress/:email", (req, res) => {
+
+    const email = req.params.email;
+
+    const user = users.find(u => u.email === email);
+
+    if (!user) {
+        return res.json({ success: false });
+    }
+
+    res.json({
+        success: true,
+        progress: user.progress
+    });
+
+});
+
 
 app.get("/", (req, res) => {
     res.send("Backend running");
@@ -95,5 +99,5 @@ app.get("/", (req, res) => {
 
 
 app.listen(PORT, () => {
-    console.log("Server running on port " + PORT);
+    console.log("Server running");
 });
