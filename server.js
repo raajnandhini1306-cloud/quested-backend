@@ -38,9 +38,12 @@ app.post("/signup", async (req,res)=>{
 
     const {email,password} = req.body;
 
+    console.log("Signup request:", email, password);
+
     const exists = await User.findOne({email});
 
     if(exists){
+        console.log("User already exists");
         return res.json({success:false});
     }
 
@@ -52,9 +55,10 @@ app.post("/signup", async (req,res)=>{
 
     await user.save();
 
+    console.log("User saved to DB:", email);
+
     res.json({success:true});
 });
-
 
 /* LOGIN */
 app.post("/login", async (req,res)=>{
