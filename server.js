@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const mongoose = require("mongoose");
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -9,10 +11,11 @@ app.use(cors({
     allowedHeaders: ["Content-Type"]
 }));
 
-app.options("*", cors());
 app.use(express.json());
-const mongoose = require("mongoose");
 
+console.log("NEW BUILD");
+
+// ✅ MongoDB connect
 const MONGO_URI =
 "mongodb+srv://quested:quested123@cluster0.p8jwq54.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
@@ -23,7 +26,9 @@ mongoose.connect(MONGO_URI)
 .catch((err) => {
     console.log("❌ MongoDB error:", err);
 });
-console.log("NEW BUILD");
+
+
+// ✅ Schema
 const userSchema = new mongoose.Schema({
     email: String,
     password: String,
@@ -32,17 +37,17 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model("User", userSchema);
 
-/* SIGNUP */
+
+// ✅ SIGNUP
 app.post("/signup", async (req,res)=>{
 
     const {email,password} = req.body;
 
-    console.log("Signup request:", email, password);
+    console.log("Signup request:", email);
 
     const exists = await User.findOne({email});
 
     if(exists){
-        console.log("User already exists");
         return res.json({success:false});
     }
 
@@ -54,12 +59,13 @@ app.post("/signup", async (req,res)=>{
 
     await user.save();
 
-    console.log("User saved to DB:", email);
+    console.log("User saved");
 
     res.json({success:true});
 });
 
-/* LOGIN */
+
+// ✅ LOGIN
 app.post("/login", async (req,res)=>{
 
     const {email,password} = req.body;
@@ -77,7 +83,7 @@ app.post("/login", async (req,res)=>{
 });
 
 
-/* SAVE PROGRESS */
+// ✅ SAVE PROGRESS
 app.post("/progress", async (req,res)=>{
 
     const {email,quest} = req.body;
@@ -94,7 +100,9 @@ app.post("/progress", async (req,res)=>{
 
     res.json({success:true});
 });
-/* GET PROGRESS */
+
+
+// ✅ GET PROGRESS
 app.get("/progress/:email", async (req,res)=>{
 
     const email = req.params.email;
