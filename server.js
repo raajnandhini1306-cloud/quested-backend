@@ -12,12 +12,19 @@ app.use(cors({
 
 app.options("*", cors());
 app.use(express.json());
-mongoose.connect(
-"mongodb+srv://quested:quested123@cluster0.p8jwq54.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-)
-.then(() => console.log("MongoDB connected"))
-.catch(err => console.log("MongoDB error:", err));
+const mongoose = require("mongoose");
 
+const MONGO_URI =
+"mongodb+srv://quested:quested123@cluster0.p8jwq54.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+
+mongoose.connect(MONGO_URI)
+.then(() => {
+    console.log("✅ MongoDB connected");
+})
+.catch((err) => {
+    console.log("❌ MongoDB error:", err);
+});
+console.log("NEW BUILD");
 const userSchema = new mongoose.Schema({
     email: String,
     password: String,
