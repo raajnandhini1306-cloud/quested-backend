@@ -13,11 +13,17 @@ app.use(cors({
 app.options("*", cors());
 app.use(express.json());
 mongoose.connect(
-"mongodb+srv://quested:quested123@cluster0.p8jwq54.mongodb.net/quested?retryWrites=true&w=majority"
-).then(()=>{
+"mongodb+srv://quested:quested123@cluster0.p8jwq54.mongodb.net/quested",
+{
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+}
+)
+.then(() => {
     console.log("MongoDB connected");
-}).catch(err=>{
-    console.log(err);
+})
+.catch(err => {
+    console.log("MongoDB error:", err);
 });
 const userSchema = new mongoose.Schema({
     email: String,
