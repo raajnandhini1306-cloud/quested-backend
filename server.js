@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-
+const mongoose = require("mongoose");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -12,82 +12,93 @@ app.use(cors({
 
 app.options("*", cors());
 app.use(express.json());
+mongoose.connect(
+"mongodb+srv://quested:quested123@cluster0.p8jwq54.mongodb.net/quested?retryWrites=true&w=majority"
+).then(()=>{
+    console.log("MongoDB connected");
+}).catch(err=>{
+    console.log(err);
+});
+const userSchema = new mongoose.Schema({
+    email: String,
+    password: String,
+    progress: Object
+});
 
-let users = [];
-
+const User = mongoose.model("User", userSchema);
 
 /* SIGNUP */
-app.post("/signup", (req, res) => {
+app.post("/signup", async (req,res)=>{
 
-    const { email, password } = req.body;
+    const {email,password} = req.body;
 
-    const exists = users.find(u => u.email === email);
+    const exists = await User.findOne({email});
 
-    if (exists) {
-        return res.json({ success: false, message: "User exists" });
+    if(exists){
+        return res.json({success:false});
     }
 
-    users.push({
+    const user = new User({
         email,
         password,
-        progress: {}
+        progress:{}
     });
 
-    res.json({ success: true });
+    await user.save();
 
+    res.json({success:true});
 });
 
 
 /* LOGIN */
-app.post("/login", (req, res) => {
+app.post("/login", async (req,res)=>{
 
-    const { email, password } = req.body;
+    const {email,password} = req.body;
 
-    const user = users.find(
-        u => u.email === email && u.password === password
-    );
+    const user = await User.findOne({
+        email,
+        password
+    });
 
-    if (!user) {
-        return res.json({ success: false });
+    if(!user){
+        return res.json({success:false});
     }
 
-    res.json({ success: true });
-
+    res.json({success:true});
 });
 
 
 /* SAVE PROGRESS */
-app.post("/progress", (req, res) => {
+app.post("/progress", async (req,res)=>{
 
-    const { email, quest } = req.body;
+    const {email,quest} = req.body;
 
-    const user = users.find(u => u.email === email);
+    const user = await User.findOne({email});
 
-    if (!user) {
-        return res.json({ success: false });
+    if(!user){
+        return res.json({success:false});
     }
 
     user.progress[quest] = true;
 
-    res.json({ success: true });
+    await user.save();
 
+    res.json({success:true});
 });
-
-
 /* GET PROGRESS */
-app.get("/progress/:email", (req, res) => {
+app.get("/progress/:email", async (req,res)=>{
 
     const email = req.params.email;
 
-    const user = users.find(u => u.email === email);
+    const user = await User.findOne({email});
 
-    if (!user) {
-        return res.json({ success: false });
+    if(!user){
+        return res.json({success:false});
     }
 
     res.json({
-        success: true,
-        progress: user.progress
+        success:true,
+        progress:user.progress
     });
 
 });
